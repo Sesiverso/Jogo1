@@ -49,7 +49,7 @@
         const larguraTabuleiro = tabuleiro.offsetWidth;
         const alturaTabuleiro = tabuleiro.offsetHeight;
 
-        // Função para criar bolinhas
+        // Função para criar bolinhas (agora com velocidades mais altas)
         function criarBolinhas() {
             for (let i = 0; i < numBolinhas; i++) {
                 const bolinha = document.createElement('div');
@@ -59,20 +59,50 @@
                 tabuleiro.appendChild(bolinha);
                 bolinhas.push({
                     element: bolinha,
-                    velocidadeX: (Math.random() - 0.5) * 4,
-                    velocidadeY: (Math.random() - 0.5) * 4
+                    // Aumentando a velocidade das bolinhas para tornar o jogo mais desafiador
+                    velocidadeX: (Math.random() - 0.5) * 8,  // Aumentado de 4 para 8
+                    velocidadeY: (Math.random() - 0.5) * 8   // Aumentado de 4 para 8
                 });
             }
         }
 
-        // Função para mover o quadrado com o mouse
-        document.addEventListener('mousemove', (event) => {
-            let posX = event.clientX - quadrado.offsetWidth / 2;
-            let posY = event.clientY - quadrado.offsetHeight / 2;
+        // Função para mover o quadrado com o mouse ou toque
+        let isTouching = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        function moverQuadrado(x, y) {
+            let posX = x - quadrado.offsetWidth / 2;
+            let posY = y - quadrado.offsetHeight / 2;
             posX = Math.max(0, Math.min(posX, larguraTabuleiro - quadrado.offsetWidth));
             posY = Math.max(0, Math.min(posY, alturaTabuleiro - quadrado.offsetHeight));
             quadrado.style.left = posX + 'px';
             quadrado.style.top = posY + 'px';
+        }
+
+        // Detectando o movimento do mouse
+        document.addEventListener('mousemove', (event) => {
+            if (!isTouching) {
+                moverQuadrado(event.clientX, event.clientY);
+            }
+        });
+
+        // Detectando o toque no dispositivo móvel
+        tabuleiro.addEventListener('touchstart', (event) => {
+            isTouching = true;
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+        });
+
+        tabuleiro.addEventListener('touchmove', (event) => {
+            event.preventDefault(); // Impede o scroll enquanto move o quadrado
+            const touchX = event.touches[0].clientX;
+            const touchY = event.touches[0].clientY;
+            moverQuadrado(touchX, touchY);
+        });
+
+        tabuleiro.addEventListener('touchend', () => {
+            isTouching = false;
         });
 
         // Função para atualizar a posição das bolinhas
@@ -113,6 +143,11 @@
 
         // Inicialização
         criarBolinhas();
+        setInterval(atualizarBolinhas, 16); // Atualiza a cada frame (aproximadamente 60 FPS)
+    </script>
+</body>
+</html>
+
         setInterval(atualizarBolinhas, 16); // Atualiza a cada frame (aproximadamente 60 FPS)
     </script>
 </body>
