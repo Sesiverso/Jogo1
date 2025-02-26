@@ -183,25 +183,18 @@
                 ) {
                     // Colisão detectada - reiniciar jogo
                     alert('Você encostou em uma bolinha! Recomeçando...');
-                    quadrado.style.left = (larguraTabuleiro / 2 - 25) + 'px';
-                    quadrado.style.top = (alturaTabuleiro / 2 - 25) + 'px';
-
-                    // Reposicionar bolinhas aleatoriamente
-                    bolinhas.forEach((b) => {
-                        b.element.style.left = Math.random() * (larguraTabuleiro - 20) + 'px';
-                        b.element.style.top = Math.random() * (alturaTabuleiro - 20) + 'px';
-                    });
+                    reiniciarJogo(); // Reinicia o jogo
                 }
             });
 
             // Atualizar movimento dos triângulos
-            moverTriangulo(triangulo1, respostasErradas[0]);
-            moverTriangulo(triangulo2, respostaCorreta);
-            moverTriangulo(triangulo3, respostasErradas[1]);
+            moverTriangulo(triangulo1, respostasErradas[0], 'left');
+            moverTriangulo(triangulo2, respostaCorreta, 'center');
+            moverTriangulo(triangulo3, respostasErradas[1], 'right');
         }
 
         // Função para mover os triângulos para longe do quadrado
-        function moverTriangulo(triangulo, respostaEsperada) {
+        function moverTriangulo(triangulo, respostaEsperada, posicao) {
             const trianguloRect = triangulo.getBoundingClientRect();
             const quadradoRect = quadrado.getBoundingClientRect();
 
@@ -211,8 +204,18 @@
 
             // Aumenta a velocidade para fugir mais rápido
             const velocidadeFuga = 5;
-            triangulo.style.left = triangulo.offsetLeft - (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
-            triangulo.style.top = triangulo.offsetTop - (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
+
+            // Definindo movimento em direções opostas
+            if (posicao === 'left') {
+                triangulo.style.left = triangulo.offsetLeft - (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
+                triangulo.style.top = triangulo.offsetTop - (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
+            } else if (posicao === 'center') {
+                triangulo.style.left = triangulo.offsetLeft + (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
+                triangulo.style.top = triangulo.offsetTop + (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
+            } else if (posicao === 'right') {
+                triangulo.style.left = triangulo.offsetLeft + (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
+                triangulo.style.top = triangulo.offsetTop - (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
+            }
 
             // Verificar colisão com o quadrado
             if (
@@ -273,21 +276,23 @@
             tabuleiro.innerHTML = '';  // Limpa o tabuleiro
             const quadradoNovo = document.createElement('div');
             quadradoNovo.id = 'quadrado';
-            quadradoNovo.style.left = (larguraTabuleiro / 2 - 25) + 'px';
-            quadradoNovo.style.top = (alturaTabuleiro / 2 - 25) + 'px';
+            quadradoNovo.style.left = (larguraTabuleiro / 2 - 25) + 'px';  // Coloca no centro
+            quadradoNovo.style.top = (alturaTabuleiro / 2 - 25) + 'px';  // Coloca no centro
             tabuleiro.appendChild(quadradoNovo);
             quadrado = quadradoNovo;
 
-            // Recriar bolinhas com novas velocidades
+            // Cria novas bolinhas
             criarBolinhas();
         }
 
         // Inicialização
         criarBolinhas();
-        setInterval(atualizarBolinhas, 16); // Atualiza a cada frame (aproximadamente 60 FPS)
-
-        // Exibe a pergunta inicial no topo
-        perguntaElement.textContent = `Qual é a multiplicação de ${numero1} x ${numero2}?`;
+        reiniciarJogo();
+        setInterval(atualizarBolinhas, 16);  // Atualiza o movimento das bolinhas
+    </script>
+</body>
+</html>
+${numero1} x ${numero2}?`;
     </script>
 </body>
 </html>
