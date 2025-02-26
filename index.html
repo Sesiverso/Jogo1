@@ -82,7 +82,7 @@
 
     <script>
         const tabuleiro = document.getElementById('tabuleiro');
-        const quadrado = document.getElementById('quadrado');
+        let quadrado = document.getElementById('quadrado'); // Alterado para let
         const bolinhas = [];
         const triangulo1 = document.getElementById('triangulo1');
         const triangulo2 = document.getElementById('triangulo2');
@@ -213,85 +213,8 @@
                 triangulo.style.left = triangulo.offsetLeft + (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
                 triangulo.style.top = triangulo.offsetTop + (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
             } else if (posicao === 'right') {
-                triangulo.style.left = triangulo.offsetLeft + (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
-                triangulo.style.top = triangulo.offsetTop - (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
-            }
+                triangulo.style.left = triangulo.offsetLeft +
 
-            // Verificar colisão com o quadrado
-            if (
-                quadradoRect.left < trianguloRect.right &&
-                quadradoRect.right > trianguloRect.left &&
-                quadradoRect.top < trianguloRect.bottom &&
-                quadradoRect.bottom > trianguloRect.top
-            ) {
-                // Se acertar a resposta correta
-                if (respostaEsperada === respostaCorreta) {
-                    alert('Você acertou! Recomeçando...');
-                    reiniciarJogo();  // Reinicia o jogo se acertar
-                } else {
-                    alert('Resposta errada, tente novamente!');
-                }
-            }
-
-            // Alternar cor do triângulo correto
-            if (respostaEsperada === respostaCorreta) {
-                if (corTrianguloCorreto) {
-                    triangulo.style.borderBottomColor = 'blue'; // Cor alternativa
-                } else {
-                    triangulo.style.borderBottomColor = 'red'; // Cor original
-                }
-                corTrianguloCorreto = !corTrianguloCorreto;
-            }
-        }
-
-        // Função para reiniciar o jogo
-        function reiniciarJogo() {
-            // Aumenta a quantidade de bolinhas e a velocidade
-            if (bolinhasCount < 10) {
-                bolinhasCount += 1;
-                bolinhasVelocidade += 7; // Aumenta a velocidade em 7
-            }
-
-            // Se atingiu 10 bolinhas, fixa a velocidade
-            if (bolinhasCount === 10) {
-                bolinhasVelocidade = 10;
-            }
-
-            // Atualiza a pergunta com novos números
-            numero1 = Math.floor(Math.random() * 10) + 1;
-            numero2 = Math.floor(Math.random() * 10) + 1;
-            respostaCorreta = numero1 * numero2;
-            respostasErradas = [respostaCorreta + 5, respostaCorreta - 3, respostaCorreta + 2];
-
-            // Atualiza o texto da pergunta no topo do tabuleiro
-            perguntaElement.textContent = `Qual é a multiplicação de ${numero1} x ${numero2}?`;
-
-            // Atualiza os textos dentro dos triângulos
-            triangulo1.textContent = respostasErradas[0];
-            triangulo2.textContent = respostaCorreta;
-            triangulo3.textContent = respostasErradas[1];
-
-            // Limpa o tabuleiro e reinicia o jogo
-            bolinhas.length = 0;  // Limpa o array de bolinhas
-            tabuleiro.innerHTML = '';  // Limpa o tabuleiro
-            const quadradoNovo = document.createElement('div');
-            quadradoNovo.id = 'quadrado';
-            quadradoNovo.style.left = (larguraTabuleiro / 2 - 25) + 'px';  // Coloca no centro
-            quadradoNovo.style.top = (alturaTabuleiro / 2 - 25) + 'px';  // Coloca no centro
-            tabuleiro.appendChild(quadradoNovo);
-            quadrado = quadradoNovo;
-
-            // Cria novas bolinhas
-            criarBolinhas();
-        }
-
-        // Inicialização
-        criarBolinhas();
-        reiniciarJogo();
-        setInterval(atualizarBolinhas, 16);  // Atualiza o movimento das bolinhas
-    </script>
-</body>
-</html>
 ${numero1} x ${numero2}?`;
     </script>
 </body>
