@@ -25,13 +25,6 @@
             top: 50%;
             transform: translate(-50%, -50%);
         }
-        .bolinha {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background-color: blue;
-            border-radius: 50%;
-        }
         .triangulo {
             position: absolute;
             width: 0;
@@ -39,15 +32,14 @@
             border-left: 30px solid transparent;
             border-right: 30px solid transparent;
             cursor: pointer;
-        }
-        .texto {
-            position: absolute;
-            font-size: 20px;
-            color: black;
+            text-align: center;
+            line-height: 60px;
+            font-size: 14px;
+            color: white;
         }
         #pergunta {
             position: absolute;
-            top: 20px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 24px;
@@ -56,7 +48,7 @@
     </style>
 </head>
 <body>
-    <div id="pergunta">Carregando pergunta...</div>
+    <div id="pergunta"></div>
     <div id="tabuleiro">
         <div id="quadrado"></div>
     </div>
@@ -64,96 +56,116 @@
     <script>
         const tabuleiro = document.getElementById('tabuleiro');
         const quadrado = document.getElementById('quadrado');
-        const perguntaElement = document.getElementById('pergunta');
-
         const larguraTabuleiro = tabuleiro.offsetWidth;
         const alturaTabuleiro = tabuleiro.offsetHeight;
 
-        // Função para gerar uma pergunta aleatória (multiplicação ou sucessores/antecessores)
-        function gerarPergunta() {
-            const tipoPergunta = Math.random() < 0.5 ? 'multiplicacao' : 'sucessores';
-            let numero1, numero2, perguntaTexto, respostaCorreta;
+        let pergunta = '';
+        let respostaCorreta = 0;
+        let triangulos = [];
 
+        // Função para gerar a pergunta e resposta
+        function gerarPergunta() {
+            const tipoPergunta = Math.random() < 0.5 ? 'multiplicacao' : 'sucessores';  // 50% chance de ser multiplicação ou sucessores/antecessores
+            const numero1 = Math.floor(Math.random() * 10) + 1;
+            let numero2 = Math.floor(Math.random() * 10) + 1;
             if (tipoPergunta === 'multiplicacao') {
-                numero1 = Math.floor(Math.random() * 10) + 1;
-                numero2 = Math.floor(Math.random() * 10) + 1;
-                perguntaTexto = `Qual é o produto de ${numero1} x ${numero2}?`;
+                pergunta = `Qual é o resultado de ${numero1} x ${numero2}?`;
                 respostaCorreta = numero1 * numero2;
             } else {
-                numero1 = Math.floor(Math.random() * 10) + 1;
-                perguntaTexto = `Qual é o número sucessor de ${numero1}?`;
-                respostaCorreta = numero1 + 1;
+                numero2 = numero1 + 1;
+                pergunta = `Qual é o sucessor de ${numero1}?`;
+                respostaCorreta = numero2;
             }
-
-            perguntaElement.textContent = perguntaTexto;
-            return respostaCorreta;
+            document.getElementById('pergunta').innerText = pergunta;
         }
 
-        // Gerar pergunta e resposta correta
-        const respostaCorreta = gerarPergunta();
-        const respostasErradas = [respostaCorreta + 5, respostaCorreta - 3, respostaCorreta + 2];
-
-        // Função para criar os triângulos aleatórios
+        // Função para gerar triangulos aleatórios
         function criarTriangulos() {
-            const triangulos = [
-                { texto: respostasErradas[0], cor: 'green' },
-                { texto: respostaCorreta, cor: 'red' },
-                { texto: respostasErradas[1], cor: 'yellow' }
-            ];
+            for (let i = 0; i < 3; i++) {
+                const triangulo = document.createElement('div');
+                triangulo.classList.add('triangulo');
+                let cor = '';
+                let texto = '';
+                let posX = Math.random() * (larguraTabuleiro - 60);
+                let posY = Math.random() * (alturaTabuleiro - 60);
 
-            triangulos.forEach((triangulo, index) => {
-                const elementoTriangulo = document.createElement('div');
-                elementoTriangulo.classList.add('triangulo');
-                elementoTriangulo.style.borderBottom = `60px solid ${triangulo.cor}`;
-                elementoTriangulo.style.left = `${Math.random() * (larguraTabuleiro - 60)}px`;
-                elementoTriangulo.style.top = `${Math.random() * (alturaTabuleiro - 60)}px`;
+                if (i === 0) {
+                    cor = 'green';
+                    texto = Math.random() < 0.5 ? respostaCorreta + 5 : respostaCorreta - 3; // Resposta incorreta
+                } else if (i === 1) {
+                    cor = 'red';
+                    texto = respostaCorreta; // Resposta correta
+                } else {
+                    cor = 'yellow';
+                    texto = Math.random() < 0.5 ? respostaCorreta + 2 : respostaCorreta - 1; // Resposta incorreta
+                }
 
-                const textoElemento = document.createElement('div');
-                textoElemento.classList.add('texto');
-                textoElemento.textContent = triangulo.texto;
-                textoElemento.style.left = `${parseFloat(elementoTriangulo.style.left) + 30}px`;
-                textoElemento.style.top = `${parseFloat(elementoTriangulo.style.top) + 70}px`;
+                triangulo.style.borderBottom = '60px solid ' + cor;
+                triangulo.style.left = posX + 'px';
+                triangulo.style.top = posY + 'px';
+                triangulo.innerText = texto;
 
-                tabuleiro.appendChild(elementoTriangulo);
-                tabuleiro.appendChild(textoElemento);
-
-                elementoTriangulo.addEventListener('click', function() {
-                    if (triangulo.texto === respostaCorreta) {
-                        // Exibir a mensagem de sucesso
-                        alert('Você Passou Da Fase 1');
-
-                        // Redirecionar para outro link após o clique em OK
-                        window.location.href = 'https://www.novalink.com';  // Substitua pelo link desejado
-                    } else {
-                        alert('Resposta errada, tente novamente!');
-                    }
+                triangulos.push({
+                    element: triangulo,
+                    resposta: texto
                 });
-            });
+
+                tabuleiro.appendChild(triangulo);
+            }
+        }
+
+        // Função para verificar colisão com os triângulos
+        function verificarColisaoTriangulo(triangulo) {
+            const trianguloRect = triangulo.element.getBoundingClientRect();
+            const quadradoRect = quadrado.getBoundingClientRect();
+
+            if (
+                quadradoRect.left < trianguloRect.right &&
+                quadradoRect.right > trianguloRect.left &&
+                quadradoRect.top < trianguloRect.bottom &&
+                quadradoRect.bottom > trianguloRect.top
+            ) {
+                // Se acertar a resposta correta
+                if (triangulo.resposta === respostaCorreta) {
+                    alert('Você acertou! Recomeçando...');
+                    reiniciarJogo();  // Reinicia o jogo se acertar
+                } else {
+                    alert('Resposta errada, tente novamente!');
+                }
+            }
         }
 
         // Função para reiniciar o jogo
         function reiniciarJogo() {
-            tabuleiro.innerHTML = '';  // Limpa o tabuleiro
-            const quadradoNovo = document.createElement('div');
-            quadradoNovo.id = 'quadrado';
-            quadradoNovo.style.left = (larguraTabuleiro / 2 - 25) + 'px';
-            quadradoNovo.style.top = (alturaTabuleiro / 2 - 25) + 'px';
-            tabuleiro.appendChild(quadradoNovo);
-            quadrado = quadradoNovo;
-
-            // Recriar os triângulos com novas perguntas
-            gerarPergunta();
-            criarTriangulos();
+            triangulos.forEach(triangulo => {
+                triangulo.element.remove(); // Remove os triângulos
+            });
+            triangulos.length = 0; // Limpa a lista de triângulos
+            criarTriangulos(); // Cria novos triângulos
         }
 
+        // Função para mover o quadrado
+        function moverQuadrado(x, y) {
+            let posX = x - quadrado.offsetWidth / 2;
+            let posY = y - quadrado.offsetHeight / 2;
+            posX = Math.max(0, Math.min(posX, larguraTabuleiro - quadrado.offsetWidth));
+            posY = Math.max(0, Math.min(posY, alturaTabuleiro - quadrado.offsetHeight));
+            quadrado.style.left = posX + 'px';
+            quadrado.style.top = posY + 'px';
+        }
+
+        // Detectando o movimento do mouse
+        document.addEventListener('mousemove', (event) => {
+            moverQuadrado(event.clientX, event.clientY);
+        });
+
         // Inicialização
+        gerarPergunta();
         criarTriangulos();
-    </script>
-</body>
-</html>
+        setInterval(() => {
+            triangulos.forEach(verificarColisaoTriangulo);
+        }, 16); // Verifica colisões a cada frame
 
-
-${numero1} x ${numero2}?`;
     </script>
 </body>
 </html>
