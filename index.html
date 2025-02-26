@@ -39,27 +39,11 @@
             border-left: 30px solid transparent;
             border-right: 30px solid transparent;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        }
+        .texto {
+            position: absolute;
             font-size: 20px;
-            font-weight: bold;
-            color: white;
-        }
-        #triangulo1 {
-            border-bottom: 60px solid green;
-            left: 20%;
-            top: 80%;
-        }
-        #triangulo2 {
-            border-bottom: 60px solid red;
-            left: 50%;
-            top: 80%;
-        }
-        #triangulo3 {
-            border-bottom: 60px solid yellow;
-            left: 80%;
-            top: 80%;
+            color: black;
         }
         #pergunta {
             position: absolute;
@@ -72,148 +56,102 @@
     </style>
 </head>
 <body>
+    <div id="pergunta">Carregando pergunta...</div>
     <div id="tabuleiro">
         <div id="quadrado"></div>
-        <div id="triangulo1" class="triangulo"></div>
-        <div id="triangulo2" class="triangulo"></div>
-        <div id="triangulo3" class="triangulo"></div>
-        <div id="pergunta"></div> <!-- Aqui será exibida a pergunta -->
     </div>
 
     <script>
         const tabuleiro = document.getElementById('tabuleiro');
-        let quadrado = document.getElementById('quadrado'); // Alterado para let
-        const bolinhas = [];
-        const triangulo1 = document.getElementById('triangulo1');
-        const triangulo2 = document.getElementById('triangulo2');
-        const triangulo3 = document.getElementById('triangulo3');
+        const quadrado = document.getElementById('quadrado');
         const perguntaElement = document.getElementById('pergunta');
 
-        // Tamanho do tabuleiro
         const larguraTabuleiro = tabuleiro.offsetWidth;
         const alturaTabuleiro = tabuleiro.offsetHeight;
 
-        // Variáveis da multiplicação
-        let numero1 = Math.floor(Math.random() * 10) + 1;
-        let numero2 = Math.floor(Math.random() * 10) + 1;
-        let respostaCorreta = numero1 * numero2;
-        let respostasErradas = [respostaCorreta + 5, respostaCorreta - 3, respostaCorreta + 2];
-        let bolinhasVelocidade = 2;
-        let bolinhasCount = 2;
-        let corTrianguloCorreto = true; // Para alternar a cor do triângulo correto
+        // Função para gerar uma pergunta aleatória (multiplicação ou sucessores/antecessores)
+        function gerarPergunta() {
+            const tipoPergunta = Math.random() < 0.5 ? 'multiplicacao' : 'sucessores';
+            let numero1, numero2, perguntaTexto, respostaCorreta;
 
-        // Função para criar bolinhas (agora com velocidades mais altas)
-        function criarBolinhas() {
-            for (let i = 0; i < bolinhasCount; i++) {
-                const bolinha = document.createElement('div');
-                bolinha.classList.add('bolinha');
-                bolinha.style.left = Math.random() * (larguraTabuleiro - 20) + 'px';
-                bolinha.style.top = Math.random() * (alturaTabuleiro - 20) + 'px';
-                tabuleiro.appendChild(bolinha);
-                bolinhas.push({
-                    element: bolinha,
-                    velocidadeX: (Math.random() - 0.5) * bolinhasVelocidade,
-                    velocidadeY: (Math.random() - 0.5) * bolinhasVelocidade
+            if (tipoPergunta === 'multiplicacao') {
+                numero1 = Math.floor(Math.random() * 10) + 1;
+                numero2 = Math.floor(Math.random() * 10) + 1;
+                perguntaTexto = `Qual é o produto de ${numero1} x ${numero2}?`;
+                respostaCorreta = numero1 * numero2;
+            } else {
+                numero1 = Math.floor(Math.random() * 10) + 1;
+                perguntaTexto = `Qual é o número sucessor de ${numero1}?`;
+                respostaCorreta = numero1 + 1;
+            }
+
+            perguntaElement.textContent = perguntaTexto;
+            return respostaCorreta;
+        }
+
+        // Gerar pergunta e resposta correta
+        const respostaCorreta = gerarPergunta();
+        const respostasErradas = [respostaCorreta + 5, respostaCorreta - 3, respostaCorreta + 2];
+
+        // Função para criar os triângulos aleatórios
+        function criarTriangulos() {
+            const triangulos = [
+                { texto: respostasErradas[0], cor: 'green' },
+                { texto: respostaCorreta, cor: 'red' },
+                { texto: respostasErradas[1], cor: 'yellow' }
+            ];
+
+            triangulos.forEach((triangulo, index) => {
+                const elementoTriangulo = document.createElement('div');
+                elementoTriangulo.classList.add('triangulo');
+                elementoTriangulo.style.borderBottom = `60px solid ${triangulo.cor}`;
+                elementoTriangulo.style.left = `${Math.random() * (larguraTabuleiro - 60)}px`;
+                elementoTriangulo.style.top = `${Math.random() * (alturaTabuleiro - 60)}px`;
+
+                const textoElemento = document.createElement('div');
+                textoElemento.classList.add('texto');
+                textoElemento.textContent = triangulo.texto;
+                textoElemento.style.left = `${parseFloat(elementoTriangulo.style.left) + 30}px`;
+                textoElemento.style.top = `${parseFloat(elementoTriangulo.style.top) + 70}px`;
+
+                tabuleiro.appendChild(elementoTriangulo);
+                tabuleiro.appendChild(textoElemento);
+
+                elementoTriangulo.addEventListener('click', function() {
+                    if (triangulo.texto === respostaCorreta) {
+                        // Exibir a mensagem de sucesso
+                        alert('Você Passou Da Fase 1');
+
+                        // Redirecionar para outro link após o clique em OK
+                        window.location.href = 'https://www.novalink.com';  // Substitua pelo link desejado
+                    } else {
+                        alert('Resposta errada, tente novamente!');
+                    }
                 });
-            }
-        }
-
-        // Função para mover o quadrado com o mouse ou toque
-        let isTouching = false;
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        function moverQuadrado(x, y) {
-            let posX = x - quadrado.offsetWidth / 2;
-            let posY = y - quadrado.offsetHeight / 2;
-            posX = Math.max(0, Math.min(posX, larguraTabuleiro - quadrado.offsetWidth));
-            posY = Math.max(0, Math.min(posY, alturaTabuleiro - quadrado.offsetHeight));
-            quadrado.style.left = posX + 'px';
-            quadrado.style.top = posY + 'px';
-        }
-
-        // Detectando o movimento do mouse
-        document.addEventListener('mousemove', (event) => {
-            if (!isTouching) {
-                moverQuadrado(event.clientX, event.clientY);
-            }
-        });
-
-        // Detectando o toque no dispositivo móvel
-        tabuleiro.addEventListener('touchstart', (event) => {
-            isTouching = true;
-            touchStartX = event.touches[0].clientX;
-            touchStartY = event.touches[0].clientY;
-        });
-
-        tabuleiro.addEventListener('touchmove', (event) => {
-            event.preventDefault(); // Impede o scroll enquanto move o quadrado
-            const touchX = event.touches[0].clientX;
-            const touchY = event.touches[0].clientY;
-            moverQuadrado(touchX, touchY);
-        });
-
-        tabuleiro.addEventListener('touchend', () => {
-            isTouching = false;
-        });
-
-        // Função para atualizar a posição das bolinhas
-        function atualizarBolinhas() {
-            bolinhas.forEach((bolinha) => {
-                const bolinhaRect = bolinha.element.getBoundingClientRect();
-                if (bolinhaRect.left <= 0 || bolinhaRect.right >= larguraTabuleiro) {
-                    bolinha.velocidadeX *= -1; // Inverte a direção ao bater nas paredes
-                    bolinha.velocidadeX += (Math.random() - 0.5) * 2;  // Adiciona variação para o ângulo
-                }
-                if (bolinhaRect.top <= 0 || bolinhaRect.bottom >= alturaTabuleiro) {
-                    bolinha.velocidadeY *= -1; // Inverte a direção ao bater nas paredes
-                    bolinha.velocidadeY += (Math.random() - 0.5) * 2;  // Adiciona variação para o ângulo
-                }
-
-                bolinha.element.style.left = bolinha.element.offsetLeft + bolinha.velocidadeX + 'px';
-                bolinha.element.style.top = bolinha.element.offsetTop + bolinha.velocidadeY + 'px';
-
-                // Verificar colisão com o quadrado
-                const quadradoRect = quadrado.getBoundingClientRect();
-                if (
-                    bolinhaRect.left < quadradoRect.right &&
-                    bolinhaRect.right > quadradoRect.left &&
-                    bolinhaRect.top < quadradoRect.bottom &&
-                    bolinhaRect.bottom > quadradoRect.top
-                ) {
-                    // Colisão detectada - reiniciar jogo
-                    alert('Você encostou em uma bolinha! Recomeçando...');
-                    reiniciarJogo(); // Reinicia o jogo
-                }
             });
-
-            // Atualizar movimento dos triângulos
-            moverTriangulo(triangulo1, respostasErradas[0], 'left');
-            moverTriangulo(triangulo2, respostaCorreta, 'center');
-            moverTriangulo(triangulo3, respostasErradas[1], 'right');
         }
 
-        // Função para mover os triângulos para longe do quadrado
-        function moverTriangulo(triangulo, respostaEsperada, posicao) {
-            const trianguloRect = triangulo.getBoundingClientRect();
-            const quadradoRect = quadrado.getBoundingClientRect();
+        // Função para reiniciar o jogo
+        function reiniciarJogo() {
+            tabuleiro.innerHTML = '';  // Limpa o tabuleiro
+            const quadradoNovo = document.createElement('div');
+            quadradoNovo.id = 'quadrado';
+            quadradoNovo.style.left = (larguraTabuleiro / 2 - 25) + 'px';
+            quadradoNovo.style.top = (alturaTabuleiro / 2 - 25) + 'px';
+            tabuleiro.appendChild(quadradoNovo);
+            quadrado = quadradoNovo;
 
-            // Cálculo da direção para o triângulo fugir do quadrado
-            const distanciaX = trianguloRect.left + trianguloRect.width / 2 - (quadradoRect.left + quadradoRect.width / 2);
-            const distanciaY = trianguloRect.top + trianguloRect.height / 2 - (quadradoRect.top + quadradoRect.height / 2);
+            // Recriar os triângulos com novas perguntas
+            gerarPergunta();
+            criarTriangulos();
+        }
 
-            // Aumenta a velocidade para fugir mais rápido
-            const velocidadeFuga = 5;
+        // Inicialização
+        criarTriangulos();
+    </script>
+</body>
+</html>
 
-            // Definindo movimento em direções opostas
-            if (posicao === 'left') {
-                triangulo.style.left = triangulo.offsetLeft - (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
-                triangulo.style.top = triangulo.offsetTop - (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
-            } else if (posicao === 'center') {
-                triangulo.style.left = triangulo.offsetLeft + (distanciaX / Math.abs(distanciaX) * velocidadeFuga) + 'px';
-                triangulo.style.top = triangulo.offsetTop + (distanciaY / Math.abs(distanciaY) * velocidadeFuga) + 'px';
-            } else if (posicao === 'right') {
-                triangulo.style.left = triangulo.offsetLeft +
 
 ${numero1} x ${numero2}?`;
     </script>
