@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabuleiro Interativo</title>
+    <title>Tabuleiro Interativo com Pergunta</title>
     <style>
         body {
             margin: 0;
@@ -32,11 +32,37 @@
             background-color: blue;
             border-radius: 50%;
         }
+        .triangulo {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            cursor: pointer;
+        }
+        #triangulo1 {
+            border-bottom: 60px solid green;
+            left: 20%;
+            top: 80%;
+        }
+        #triangulo2 {
+            border-bottom: 60px solid red;
+            left: 50%;
+            top: 80%;
+        }
+        #triangulo3 {
+            border-bottom: 60px solid yellow;
+            left: 80%;
+            top: 80%;
+        }
     </style>
 </head>
 <body>
     <div id="tabuleiro">
         <div id="quadrado"></div>
+        <div id="triangulo1" class="triangulo"></div>
+        <div id="triangulo2" class="triangulo"></div>
+        <div id="triangulo3" class="triangulo"></div>
     </div>
 
     <script>
@@ -44,14 +70,25 @@
         const quadrado = document.getElementById('quadrado');
         const bolinhas = [];
         const numBolinhas = 5;
+        const triangulo1 = document.getElementById('triangulo1');
+        const triangulo2 = document.getElementById('triangulo2');
+        const triangulo3 = document.getElementById('triangulo3');
 
         // Tamanho do tabuleiro
         const larguraTabuleiro = tabuleiro.offsetWidth;
         const alturaTabuleiro = tabuleiro.offsetHeight;
 
+        // Variáveis da multiplicação
+        let numero1 = Math.floor(Math.random() * 10) + 1;
+        let numero2 = Math.floor(Math.random() * 10) + 1;
+        let respostaCorreta = numero1 * numero2;
+        let respostasErradas = [respostaCorreta + 5, respostaCorreta - 3, respostaCorreta + 2];
+        let bolinhasVelocidade = 2;
+        let bolinhasCount = 2;
+
         // Função para criar bolinhas (agora com velocidades mais altas)
         function criarBolinhas() {
-            for (let i = 0; i < numBolinhas; i++) {
+            for (let i = 0; i < bolinhasCount; i++) {
                 const bolinha = document.createElement('div');
                 bolinha.classList.add('bolinha');
                 bolinha.style.left = Math.random() * (larguraTabuleiro - 20) + 'px';
@@ -59,9 +96,8 @@
                 tabuleiro.appendChild(bolinha);
                 bolinhas.push({
                     element: bolinha,
-                    // Aumentando a velocidade das bolinhas para tornar o jogo mais desafiador
-                    velocidadeX: (Math.random() - 0.5) * 8,  // Aumentado de 4 para 8
-                    velocidadeY: (Math.random() - 0.5) * 8   // Aumentado de 4 para 8
+                    velocidadeX: (Math.random() - 0.5) * bolinhasVelocidade,
+                    velocidadeY: (Math.random() - 0.5) * bolinhasVelocidade
                 });
             }
         }
@@ -110,10 +146,12 @@
             bolinhas.forEach((bolinha) => {
                 const bolinhaRect = bolinha.element.getBoundingClientRect();
                 if (bolinhaRect.left <= 0 || bolinhaRect.right >= larguraTabuleiro) {
-                    bolinha.velocidadeX *= -1;
+                    bolinha.velocidadeX *= -1; // Inverte a direção ao bater nas paredes
+                    bolinha.velocidadeX += (Math.random() - 0.5) * 2;  // Adiciona variação para o ângulo
                 }
                 if (bolinhaRect.top <= 0 || bolinhaRect.bottom >= alturaTabuleiro) {
-                    bolinha.velocidadeY *= -1;
+                    bolinha.velocidadeY *= -1; // Inverte a direção ao bater nas paredes
+                    bolinha.velocidadeY += (Math.random() - 0.5) * 2;  // Adiciona variação para o ângulo
                 }
 
                 bolinha.element.style.left = bolinha.element.offsetLeft + bolinha.velocidadeX + 'px';
@@ -139,15 +177,69 @@
                     });
                 }
             });
+
+            // Verificar colisão com os triângulos
+            verificarColisaoTriangulo(triangulo1, respostasErradas[0]);
+            verificarColisaoTriangulo(triangulo2, respostaCorreta);
+            verificarColisaoTriangulo(triangulo3, respostasErradas[1]);
+        }
+
+        // Função para verificar colisão com os triângulos
+        function verificarColisaoTriangulo(triangulo, respostaEsperada) {
+            const trianguloRect = triangulo.getBoundingClientRect();
+            const quadradoRect = quadrado.getBoundingClientRect();
+
+            if (
+                quadradoRect.left < trianguloRect.right &&
+                quadradoRect.right > trianguloRect.left &&
+                quadradoRect.top < trianguloRect.bottom &&
+                quadradoRect.bottom > trianguloRect.top
+            ) {
+                // Se acertar a resposta correta
+                if (respostaEsperada === respostaCorreta) {
+                    alert('Você acertou! Recomeçando...');
+                    reiniciarJogo();  // Reinicia o jogo se acertar
+                } else {
+                    alert('Resposta errada, tente novamente!');
+                }
+            }
+        }
+
+        // Função para reiniciar o jogo
+        function reiniciarJogo() {
+            // Aumenta a quantidade de bolinhas e a velocidade
+            if (bolinhasCount < 10) {
+                bolinhasCount += 1;
+                bolinhasVelocidade += 1;
+            }
+
+            // Se atingiu 10 bolinhas, fixa a velocidade
+            if (bolinhasCount === 10) {
+                bolinhasVelocidade = 10;
+            }
+
+            // Atualiza a pergunta com novos números
+            numero1 = Math.floor(Math.random() * 10) + 1;
+            numero2 = Math.floor(Math.random() * 10) + 1;
+            respostaCorreta = numero1 * numero2;
+            respostasErradas = [respostaCorreta + 5, respostaCorreta - 3, respostaCorreta + 2];
+
+            // Limpa o tabuleiro e reinicia o jogo
+            bolinhas.length = 0;  // Limpa o array de bolinhas
+            tabuleiro.innerHTML = '';  // Limpa o tabuleiro
+            const quadradoNovo = document.createElement('div');
+            quadradoNovo.id = 'quadrado';
+            quadradoNovo.style.left = (larguraTabuleiro / 2 - 25) + 'px';
+            quadradoNovo.style.top = (alturaTabuleiro / 2 - 25) + 'px';
+            tabuleiro.appendChild(quadradoNovo);
+            quadrado = quadradoNovo;
+
+            // Recriar bolinhas com novas velocidades
+            criarBolinhas();
         }
 
         // Inicialização
         criarBolinhas();
-        setInterval(atualizarBolinhas, 16); // Atualiza a cada frame (aproximadamente 60 FPS)
-    </script>
-</body>
-</html>
-
         setInterval(atualizarBolinhas, 16); // Atualiza a cada frame (aproximadamente 60 FPS)
     </script>
 </body>
